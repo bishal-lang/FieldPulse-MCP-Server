@@ -4,18 +4,27 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsx server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.33.0",
   "dependencies": {
+    "@modelcontextprotocol/inspector": "^0.21.2",
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "dotenv": "^17.4.2",
+    "node-cache": "^5.1.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/dotenv": "^8.2.3",
     "@types/node": "^25.9.1",
+    "@types/node-cache": "^4.2.5",
+    "tsx": "^4.22.3",
     "typescript": "^6.0.3"
   }
 }
