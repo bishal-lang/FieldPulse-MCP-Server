@@ -1,6 +1,5 @@
 //geometric center
 
-
 import 'dotenv/config'
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -16,8 +15,9 @@ if (!process.env.FIELD_PULSE_API_KEY) {
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 const FIELD_PULSE_API_KEY = process.env.FIELD_PULSE_API_KEY;
-const FIELD_PULSE_BASE_URL = process.env.FIELD_PULSE_BASE_URL || 
-    "https://ywe3crmpll.execute-api.us-east-2.amazonaws.com/stage";
+const FIELD_PULSE_BASE_URL = process.env.FIELD_PULSE_BASE_URL || "https://ywe3crmpll.execute-api.us-east-2.amazonaws.com/stage";
+
+const HVAC_SERVICE_TEAM_IDS = new Set([178661, 177568, 174715, 177569, 177570, 177571]);
 
 async function geocodeAddress(address: string) {
     const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json`;
@@ -55,6 +55,7 @@ function formatUSPhone(phone: string | null): string {
     }
 }
 
+
 server.registerTool(
     "FindNearestTechnician",
     {
@@ -75,6 +76,7 @@ server.registerTool(
                 "filter[0][operator]": "=",
                 "filter[0][value]": 4,
                 "filter[0][class]": "int",
+                "rel[]": "pivot",
                 limit: 20
             },
             timeout: 10000
@@ -148,6 +150,8 @@ server.registerTool(
                 return { ...tech, distanceMiles: null, durationMin: null, routeSuccess: false };
             }
         });
+
+
 
         const results = await Promise.all(routePromises);
         const validResults = results
