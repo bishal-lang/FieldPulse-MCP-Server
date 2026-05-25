@@ -1,4 +1,5 @@
 "use strict";
+//geometric center
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -76,7 +77,7 @@ server.registerTool("FindNearestTechnician", {
             isError: false
         };
     }
-    const candidates = technicians.slice(0, 5);
+    const candidates = technicians.slice(0, 260);
     const routePromises = candidates.map(async (tech) => {
         const techCoords = tech.last_known_location.coordinates;
         const url = `https://routes.googleapis.com/directions/v2:computeRoutes`;
@@ -145,7 +146,9 @@ server.registerTool("FindNearestTechnician", {
         - ${nearest.distanceMiles} mi away (~${nearest.durationMin} min drive)
         - ${nearest.email || "N/A"}
         - ${formatUSPhone(nearest.phone) || "N/A"}
-        - Location last updated: ${nearest.last_known_location.time}`;
+        - Location last updated: ${nearest.last_known_location.time}
+        -Customer Coordinates: ${customerCoords.lat}, ${customerCoords.lng}
+        -Coordinates ${nearest.last_known_location.coordinates.latitude}, ${nearest.last_known_location.coordinates.longitude}`;
     return {
         content: [{ type: "text", text: resultText }],
     };

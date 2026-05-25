@@ -1,3 +1,6 @@
+//geometric center
+
+
 import 'dotenv/config'
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -88,7 +91,7 @@ server.registerTool(
             };
         }
  
-        const candidates = technicians.slice(0, 5);
+        const candidates = technicians.slice(0, 360);
         const routePromises = candidates.map(async (tech: any) => {
             const techCoords = tech.last_known_location.coordinates;
             
@@ -162,11 +165,13 @@ server.registerTool(
         const resultText = `Nearest HVAC Technician for ${args.zip_code}
 
 
-        ${nearest.first_name} ${nearest.last_name} (ID: ${nearest.id})
-        - ${nearest.distanceMiles} mi away (~${nearest.durationMin} min drive)
-        - ${nearest.email || "N/A"}
-        - ${formatUSPhone(nearest.phone) || "N/A"}
-        - Location last updated: ${nearest.last_known_location.time}`;
+        Name: ${nearest.first_name} ${nearest.last_name} (ID: ${nearest.id})
+        Distance: ${nearest.distanceMiles} mi away (~${nearest.durationMin} min drive)
+        Email: ${nearest.email || "N/A"}
+        Phone: ${formatUSPhone(nearest.phone) || "N/A"}
+        Location last updated: ${nearest.last_known_location.time}
+        Customer Coordinates: ${customerCoords.lat}, ${customerCoords.lng}
+        Coordinates ${nearest.last_known_location.coordinates.latitude}, ${nearest.last_known_location.coordinates.longitude}`
 
         return {
             content: [{ type: "text", text: resultText }],
