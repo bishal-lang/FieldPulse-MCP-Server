@@ -94,6 +94,15 @@ const HVAC_USER_IDS = new Set([
   328714
 ]);
 
+function haversineMiles(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 3959;
+    const toRad = (deg: number) => deg * Math.PI / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 async function geocodeAddress(address: string) {
     const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json`;
     const response = await axios.get(geocodeUrl, {
@@ -145,14 +154,13 @@ server.registerTool(
         const response = await axios.get(`${FIELD_PULSE_BASE_URL}/users`, {
             headers: { "x-api-key": FIELD_PULSE_API_KEY },
             params: {
-                limit: 360
+                limit: 300
             },
-            timeout: 10000
+            timeout: 8000
         });
 
         const technicians = response.data.response?.filter((user: any) => {
-            const teamId = user.pivot?.team_id;
-            return user.is_active && user.role === 4 && user.last_known_location?.coordinates && HVAC_USER_IDS.has(user.id);
+            return user.is_active && user.last_known_location?.coordinates && HVAC_USER_IDS.has(user.id);
         }) || [];
 
         if (technicians.length === 0) {
@@ -163,8 +171,12 @@ server.registerTool(
         }
 
        const sorted = technicians.sort((a: { last_known_location: { coordinates: { latitude: number; longitude: number; }; }; }, b: { last_known_location: { coordinates: { latitude: number; longitude: number; }; }; }) => {
-                const distA = Math.hypot(a.last_known_location.coordinates.latitude - customerCoords.lat, a.last_known_location.coordinates.longitude - customerCoords.lng);
-                const distB = Math.hypot(b.last_known_location.coordinates.latitude - customerCoords.lat, b.last_known_location.coordinates.longitude - customerCoords.lng);
+                const latA = Number(a.last_known_location.coordinates.latitude);
+                const lonA = Number(a.last_known_location.coordinates.longitude);
+                const latb = Number(b.last_known_location.coordinates.latitude);
+                const lonB = Number(b.last_known_location.coordinates.longitude);
+                const distA = haversineMiles(latA, lonA, customerCoords.lat, customerCoords.lng);
+                const distB = haversineMiles(latb, lonB, customerCoords.lat, customerCoords.lng);
                 return distA - distB;
         });
  
@@ -206,7 +218,7 @@ server.registerTool(
                             "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY,
                             "X-Goog-FieldMask": "routes.distanceMeters,routes.duration"
                         },
-                        timeout: 10000
+                        timeout: 6000
                     }
                 );
 
@@ -231,7 +243,7 @@ server.registerTool(
         const results = await Promise.all(routePromises);
         const validResults = results
             .filter((r: any) => r.routeSuccess && r.distanceMiles !== null)
-            .sort((a: any, b: any) => a.distanceMiles - b.distanceMiles);
+            .sort((a: any, b: any) => ( a.distanceMiles ?? Infinity ) - ( b.distanceMiles ?? Infinity ))
 
         if (validResults.length === 0) {
             return {
